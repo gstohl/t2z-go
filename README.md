@@ -1,16 +1,16 @@
-# t2z Go Bindings
+# t2z-go
 
-Go bindings using CGO to wrap the Rust core library.
+> **Auto-generated** - Do not edit directly. All changes must be made in [gstohl/t2z](https://github.com/gstohl/t2z).
+
+Go bindings for t2z - enabling transparent Zcash wallets to send shielded Orchard outputs via PCZT ([ZIP 374](https://zips.z.cash/zip-0374)).
 
 ## Installation
 
 ```bash
-# Build Rust library first
-cd ../../core/rust && cargo build --release
-
-# Test Go bindings
-cd ../../bindings/go && go test -v
+go get github.com/gstohl/t2z-go
 ```
+
+Native libraries are bundled for: macOS (arm64/x64), Linux (x64/arm64), Windows (x64/arm64).
 
 ## Usage
 
@@ -19,15 +19,14 @@ package main
 
 import (
     "log"
-    t2z "github.com/gstohl/t2z/go"
-    "github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
+    t2z "github.com/gstohl/t2z-go"
 )
 
 func main() {
     // 1. Create payment request
     request, _ := t2z.NewTransactionRequest([]t2z.Payment{{
-        Address: "utest1...",  // unified or transparent address
-        Amount:  100000,       // 0.001 ZEC in zatoshis
+        Address: "u1...",    // unified or transparent address
+        Amount:  100000,     // 0.001 ZEC in zatoshis
     }})
     defer request.Free()
 
@@ -47,21 +46,19 @@ func main() {
 
     // 4. Sign transparent inputs
     sighash, _ := t2z.GetSighash(proved, 0)
-    sig := ecdsa.SignCompact(privKey, sighash[:], false)
-    var signature [64]byte
-    copy(signature[:], sig[1:]) // skip recovery byte
+    signature := t2z.SignMessage(privateKey, sighash[:])
 
     signed, _ := t2z.AppendSignature(proved, 0, signature)
 
     // 5. Finalize and broadcast
     txBytes, _ := t2z.FinalizeAndExtract(signed)
-    // submit txBytes to zcashd/lightwalletd
+    // submit txBytes to Zcash network
 }
 ```
 
 ## API
 
-See [root README](../README.md) for full API documentation.
+See the [main repo](https://github.com/gstohl/t2z) for full documentation.
 
 | Function | Description |
 |----------|-------------|
@@ -74,12 +71,15 @@ See [root README](../README.md) for full API documentation.
 | `Combine` | Merge multiple PCZTs |
 | `FinalizeAndExtract` | Extract transaction bytes |
 | `ParsePCZT` / `SerializePCZT` | PCZT serialization |
+| `SignMessage` | secp256k1 signing utility |
+| `GetPublicKey` | Derive compressed public key |
+| `CalculateFee` | Calculate ZIP-317 fee |
 
 ## Types
 
 ```go
 type Payment struct {
-    Address string   // transparent (tm...) or unified (utest1...)
+    Address string   // transparent (t1...) or unified (u1...)
     Amount  uint64   // zatoshis
     Memo    string   // optional, for shielded outputs
 }
@@ -93,15 +93,16 @@ type TransparentInput struct {
 }
 ```
 
+## Examples
+
+See [examples/](examples/) for complete working examples:
+
+- **zebrad-regtest/** - Local regtest network examples (1-9)
+- **zebrad-mainnet/** - Mainnet examples with hardware wallet flow
+
 ## Memory
 
 **Automatic cleanup**: All handles are automatically freed by the garbage collector via `runtime.SetFinalizer`. No manual cleanup required.
-
-Consuming functions transfer ownership (input PCZT becomes invalid):
-- `ProveTransaction`, `AppendSignature`, `FinalizeAndExtract`, `Combine`
-
-Non-consuming (read-only):
-- `GetSighash`, `Serialize`, `VerifyBeforeSigning`
 
 ## License
 
