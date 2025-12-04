@@ -1,6 +1,6 @@
-module github.com/gstohl/t2z/go
+module github.com/gstohl/t2z-go
 
-go 1.24.0
+go 1.21
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
