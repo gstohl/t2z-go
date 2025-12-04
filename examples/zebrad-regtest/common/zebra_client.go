@@ -94,7 +94,14 @@ func (c *ZebraClient) rawCall(method string, params ...interface{}) (json.RawMes
 		return nil, fmt.Errorf("marshal request: %w", err)
 	}
 
-	resp, err := c.client.Post(c.url, "application/json", bytes.NewReader(jsonBody))
+	req, err := http.NewRequest("POST", c.url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Connection", "close") // Prevent keep-alive connection issues
+
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http post: %w", err)
 	}
@@ -187,18 +194,32 @@ func (c *ZebraClient) GetBlock(hash string, verbosity int) (json.RawMessage, err
 	return result, nil
 }
 
-// SendRawTransaction broadcasts a raw transaction
+// SendRawTransaction broadcasts a raw transaction with retry logic
 func (c *ZebraClient) SendRawTransaction(txHex string) (string, error) {
-	result, err := c.rawCall("sendrawtransaction", txHex)
-	if err != nil {
-		return "", err
+	maxRetries := 3
+	var lastErr error
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			fmt.Printf("   Retry attempt %d/%d...\n", attempt+1, maxRetries)
+			time.Sleep(2 * time.Second)
+		}
+
+		result, err := c.rawCall("sendrawtransaction", txHex)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		var txid string
+		if err := json.Unmarshal(result, &txid); err != nil {
+			lastErr = err
+			continue
+		}
+		return txid, nil
 	}
 
-	var txid string
-	if err := json.Unmarshal(result, &txid); err != nil {
-		return "", err
-	}
-	return txid, nil
+	return "", fmt.Errorf("broadcast failed after %d attempts: %w", maxRetries, lastErr)
 }
 
 // WaitForBlocks waits until the specified block height is reached

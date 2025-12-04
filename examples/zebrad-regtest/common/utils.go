@@ -16,22 +16,50 @@ import (
 var dataDir string
 
 func init() {
-	// Get executable directory for data storage
-	exe, err := os.Executable()
-	if err != nil {
-		dataDir = "data"
-	} else {
-		dataDir = filepath.Join(filepath.Dir(exe), "..", "data")
+	// Check environment variable first
+	if envDir := os.Getenv("T2Z_DATA_DIR"); envDir != "" {
+		dataDir = envDir
+		return
 	}
-	// Also try current working directory
-	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
-		dataDir = "data"
-	}
+
+	// Default to "data" in current working directory
+	dataDir = "data"
 }
 
-// SetDataDir sets the data directory
+// SetDataDir sets the data directory (only if T2Z_DATA_DIR env var is not set)
 func SetDataDir(dir string) {
+	// Don't override if environment variable is set
+	if os.Getenv("T2Z_DATA_DIR") != "" {
+		return
+	}
 	dataDir = dir
+}
+
+// InitDataDir initializes the data directory, checking env var first,
+// then falling back to executable-relative path
+func InitDataDir() {
+	// If env var is set, it's already initialized in init()
+	if os.Getenv("T2Z_DATA_DIR") != "" {
+		return
+	}
+
+	// Try executable-relative path
+	exe, err := os.Executable()
+	if err == nil {
+		exeDir := filepath.Join(filepath.Dir(exe), "..", "data")
+		if _, err := os.Stat(exeDir); err == nil {
+			dataDir = exeDir
+			return
+		}
+	}
+
+	// Fall back to current working directory
+	dataDir = "data"
+}
+
+// GetDataDir returns the current data directory
+func GetDataDir() string {
+	return dataDir
 }
 
 // LoadSpentUtxos loads the set of spent UTXOs from file

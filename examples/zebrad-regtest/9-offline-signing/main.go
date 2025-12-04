@@ -18,7 +18,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	t2z "github.com/gstohl/t2z/go"
 	"github.com/gstohl/t2z/go/examples/zebrad-regtest/common"
@@ -34,10 +33,8 @@ func main() {
 	fmt.Println("The private key NEVER touches the online device!")
 	fmt.Println()
 
-	// Set data directory relative to this script
-	exe, _ := os.Executable()
-	dataDir := filepath.Join(filepath.Dir(exe), "..", "data")
-	common.SetDataDir(dataDir)
+	// Initialize data directory (respects T2Z_DATA_DIR env var)
+	common.InitDataDir()
 
 	// Create Zebra client
 	client := common.NewZebraClient()

@@ -12,7 +12,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -22,11 +21,10 @@ import (
 func main() {
 	fmt.Println("Setting up Zebra regtest environment...\n")
 
-	// Set data directory relative to this script
-	exe, _ := os.Executable()
-	dataDir := filepath.Join(filepath.Dir(exe), "..", "data")
-	common.SetDataDir(dataDir)
-	os.MkdirAll(dataDir, 0755)
+	// Initialize data directory (respects T2Z_DATA_DIR env var)
+	common.InitDataDir()
+	// Ensure data directory exists
+	os.MkdirAll(common.GetDataDir(), 0755)
 
 	// Clear spent UTXOs tracker from previous runs
 	common.ClearSpentUtxos()
@@ -109,7 +107,7 @@ func main() {
 	if err := common.SaveTestData(testData); err != nil {
 		fmt.Printf("Error saving test data: %v\n", err)
 	} else {
-		fmt.Printf("\nSaved test data to %s/test-addresses.json\n", dataDir)
+		fmt.Printf("\nSaved test data to %s/test-addresses.json\n", common.GetDataDir())
 	}
 
 	fmt.Println("\nSetup complete!")
