@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -117,7 +116,7 @@ func main() {
 			numShielded++
 		}
 	}
-	fee := t2z.CalculateFee(uint64(len(utxos)), uint64(numTransparent+1), uint64(numShielded))
+	fee := t2z.CalculateFee(len(utxos), numTransparent+1, numShielded)
 
 	var totalSend uint64
 	for _, r := range recipients {
@@ -212,11 +211,11 @@ func main() {
 	fmt.Print("  Signing... ")
 	signed := proved
 	for i := range inputs {
-		sighash, _ := t2z.GetSighash(signed, uint32(i))
+		sighash, _ := t2z.GetSighash(signed, uint(i))
 		sig := ecdsa.SignCompact(privKey, sighash[:], true)
 		var sigBytes [64]byte
 		copy(sigBytes[:], sig[1:])
-		signed, _ = t2z.AppendSignature(signed, uint32(i), sigBytes)
+		signed, _ = t2z.AppendSignature(signed, uint(i), sigBytes)
 	}
 	fmt.Println("done")
 
@@ -298,7 +297,7 @@ func broadcast(rpcURL, txHex string) (string, error) {
 }
 
 func loadEnv() map[string]string {
-	envPath := filepath.Join(getDir(), "..", "..", ".env")
+	envPath := ".env"
 	data, err := os.ReadFile(envPath)
 	if err != nil {
 		fmt.Println("No .env file found. Run: go run ./cmd/generate-wallet")
@@ -315,11 +314,6 @@ func loadEnv() map[string]string {
 		}
 	}
 	return env
-}
-
-func getDir() string {
-	exe, _ := os.Executable()
-	return filepath.Dir(exe)
 }
 
 func truncate(s string, n int) string {

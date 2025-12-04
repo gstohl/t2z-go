@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -164,7 +163,7 @@ func main() {
 	psztHex := hex.EncodeToString(psztBytes)
 
 	// Save to temp file
-	tempFile := filepath.Join(getDir(), "..", "..", ".pczt-temp")
+	tempFile := ".pczt-temp"
 	os.WriteFile(tempFile, []byte(psztHex), 0600)
 
 	fmt.Println("\n" + strings.Repeat("=", 60))
@@ -266,7 +265,7 @@ func broadcast(rpcURL, txHex string) (string, error) {
 }
 
 func loadEnv() map[string]string {
-	envPath := filepath.Join(getDir(), "..", "..", ".env")
+	envPath := ".env"
 	data, _ := os.ReadFile(envPath)
 	env := map[string]string{"ZEBRA_HOST": "localhost", "ZEBRA_PORT": "8232"}
 	for _, line := range strings.Split(string(data), "\n") {
@@ -275,11 +274,6 @@ func loadEnv() map[string]string {
 		}
 	}
 	return env
-}
-
-func getDir() string {
-	exe, _ := os.Executable()
-	return filepath.Dir(exe)
 }
 
 func mustHex(s string) []byte {

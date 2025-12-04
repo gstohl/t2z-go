@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -58,7 +57,7 @@ func main() {
 }
 
 func loadEnv() map[string]string {
-	envPath := filepath.Join(getDir(), "..", "..", ".env")
+	envPath := ".env"
 	data, err := os.ReadFile(envPath)
 	if err != nil {
 		fmt.Println("No .env file found. Run: go run ./cmd/generate-wallet")
@@ -73,9 +72,4 @@ func loadEnv() map[string]string {
 		}
 	}
 	return env
-}
-
-func getDir() string {
-	exe, _ := os.Executable()
-	return filepath.Dir(exe)
 }

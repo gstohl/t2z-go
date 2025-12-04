@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -15,7 +14,7 @@ import (
 )
 
 func main() {
-	envPath := filepath.Join(getDir(), "..", ".env")
+	envPath := ".env"
 
 	// Check if wallet already exists
 	if _, err := os.Stat(envPath); err == nil {
@@ -107,11 +106,6 @@ func base58Encode(data []byte) string {
 		out[i] = alphabet[b]
 	}
 	return string(out)
-}
-
-func getDir() string {
-	exe, _ := os.Executable()
-	return filepath.Dir(exe)
 }
 
 func splitLines(s string) []string {
