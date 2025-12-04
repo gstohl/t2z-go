@@ -1,4 +1,4 @@
-package t2z_test
+package t2z
 
 import (
 	"encoding/hex"
@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	t2z "github.com/gstohl/t2z/go"
 )
 
 // ExampleNewTransactionRequest demonstrates creating a payment request.
@@ -17,7 +16,7 @@ func ExampleNewTransactionRequest() {
 	inputAmount := uint64(100_000_000) // 1 ZEC
 	paymentAmount := inputAmount / 2    // 50%, like TypeScript Example 1
 
-	payments := []t2z.Payment{
+	payments := []Payment{
 		{
 			Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma",
 			Amount:  paymentAmount,
@@ -25,7 +24,7 @@ func ExampleNewTransactionRequest() {
 		},
 	}
 
-	request, err := t2z.NewTransactionRequest(payments)
+	request, err := NewTransactionRequest(payments)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,10 +44,10 @@ func ExampleProposeTransaction() {
 	inputAmount := uint64(100_000_000) // 1 ZEC
 	paymentAmount := inputAmount / 2   // 50%
 
-	payments := []t2z.Payment{
+	payments := []Payment{
 		{Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma", Amount: paymentAmount},
 	}
-	request, _ := t2z.NewTransactionRequest(payments)
+	request, _ := NewTransactionRequest(payments)
 	defer request.Free()
 
 	// Mainnet is the default
@@ -66,7 +65,7 @@ func ExampleProposeTransaction() {
 	scriptPubKey, _ := hex.DecodeString(scriptPubKeyHex)
 
 	var txid [32]byte
-	inputs := []t2z.TransparentInput{
+	inputs := []TransparentInput{
 		{
 			Pubkey:       pubKeyBytes,
 			TxID:         txid,
@@ -77,7 +76,7 @@ func ExampleProposeTransaction() {
 	}
 
 	// Propose transaction (creates PCZT)
-	_, err := t2z.ProposeTransaction(inputs, request)
+	_, err := ProposeTransaction(inputs, request)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -94,10 +93,10 @@ func ExampleSerializePCZT() {
 	inputAmount := uint64(100_000_000) // 1 ZEC
 	paymentAmount := inputAmount / 2   // 50%
 
-	payments := []t2z.Payment{
+	payments := []Payment{
 		{Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma", Amount: paymentAmount},
 	}
-	request, _ := t2z.NewTransactionRequest(payments)
+	request, _ := NewTransactionRequest(payments)
 	defer request.Free()
 
 	// Mainnet is the default
@@ -112,14 +111,14 @@ func ExampleSerializePCZT() {
 	scriptPubKey, _ := hex.DecodeString("76a91479b000887626b294a914501a4cd226b58b23598388ac")
 
 	var txid [32]byte
-	inputs := []t2z.TransparentInput{
+	inputs := []TransparentInput{
 		{Pubkey: pubKeyBytes, TxID: txid, Vout: 0, Amount: inputAmount, ScriptPubKey: scriptPubKey},
 	}
 
-	pczt, _ := t2z.ProposeTransaction(inputs, request)
+	pczt, _ := ProposeTransaction(inputs, request)
 
 	// Serialize PCZT (does not consume it)
-	pcztBytes, err := t2z.SerializePCZT(pczt)
+	pcztBytes, err := SerializePCZT(pczt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,7 +130,7 @@ func ExampleSerializePCZT() {
 	// Output: Serialized PCZT: 367 bytes
 }
 
-// ExampleParse demonstrates parsing a serialized PCZT.
+// ExampleParsePCZT demonstrates parsing a serialized PCZT.
 // Follows TypeScript patterns.
 func ExampleParsePCZT() {
 	// Assume we have serialized PCZT bytes (e.g., from hardware wallet)
@@ -145,10 +144,10 @@ func ExampleParsePCZT() {
 		inputAmount := uint64(100_000_000)
 		paymentAmount := inputAmount / 2
 
-		payments := []t2z.Payment{
+		payments := []Payment{
 			{Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma", Amount: paymentAmount},
 		}
-		request, _ := t2z.NewTransactionRequest(payments)
+		request, _ := NewTransactionRequest(payments)
 		defer request.Free()
 
 		// Mainnet is the default
@@ -163,17 +162,17 @@ func ExampleParsePCZT() {
 		scriptPubKey, _ := hex.DecodeString("76a91479b000887626b294a914501a4cd226b58b23598388ac")
 
 		var txid [32]byte
-		inputs := []t2z.TransparentInput{
+		inputs := []TransparentInput{
 			{Pubkey: pubKeyBytes, TxID: txid, Vout: 0, Amount: inputAmount, ScriptPubKey: scriptPubKey},
 		}
 
-		pczt, _ := t2z.ProposeTransaction(inputs, request)
-		pcztBytes, _ = t2z.SerializePCZT(pczt)
+		pczt, _ := ProposeTransaction(inputs, request)
+		pcztBytes, _ = SerializePCZT(pczt)
 		pczt.Free()
 	}
 
 	// Parse PCZT from bytes
-	pczt, err := t2z.ParsePCZT(pcztBytes)
+	pczt, err := ParsePCZT(pcztBytes)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -190,10 +189,10 @@ func ExampleGetSighash() {
 	inputAmount := uint64(100_000_000) // 1 ZEC
 	paymentAmount := inputAmount / 2   // 50%
 
-	payments := []t2z.Payment{
+	payments := []Payment{
 		{Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma", Amount: paymentAmount},
 	}
-	request, _ := t2z.NewTransactionRequest(payments)
+	request, _ := NewTransactionRequest(payments)
 	defer request.Free()
 
 	// Mainnet is the default
@@ -208,15 +207,15 @@ func ExampleGetSighash() {
 	scriptPubKey, _ := hex.DecodeString("76a91479b000887626b294a914501a4cd226b58b23598388ac")
 
 	var txid [32]byte
-	inputs := []t2z.TransparentInput{
+	inputs := []TransparentInput{
 		{Pubkey: pubKeyBytes, TxID: txid, Vout: 0, Amount: inputAmount, ScriptPubKey: scriptPubKey},
 	}
 
-	pczt, _ := t2z.ProposeTransaction(inputs, request)
-	proved, _ := t2z.ProveTransaction(pczt)
+	pczt, _ := ProposeTransaction(inputs, request)
+	proved, _ := ProveTransaction(pczt)
 
 	// Get sighash for input 0 (does not consume PCZT)
-	sighash, err := t2z.GetSighash(proved, 0)
+	sighash, err := GetSighash(proved, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -232,7 +231,7 @@ func ExampleNewTransactionRequestWithTargetHeight() {
 	inputAmount := uint64(100_000_000)
 	paymentAmount := inputAmount / 2
 
-	payments := []t2z.Payment{
+	payments := []Payment{
 		{
 			Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma",
 			Amount:  paymentAmount,
@@ -240,7 +239,7 @@ func ExampleNewTransactionRequestWithTargetHeight() {
 	}
 
 	// Create request with specific target block height (post-NU5 like TypeScript)
-	request, err := t2z.NewTransactionRequestWithTargetHeight(payments, 2_500_000)
+	request, err := NewTransactionRequestWithTargetHeight(payments, 2_500_000)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -259,11 +258,11 @@ func ExampleTransactionRequest_SetTargetHeight() {
 	inputAmount := uint64(100_000_000)
 	paymentAmount := inputAmount / 2
 
-	payments := []t2z.Payment{
+	payments := []Payment{
 		{Address: "tm9iMLAuYMzJ6jtFLcA7rzUmfreGuKvr7Ma", Amount: paymentAmount},
 	}
 
-	request, _ := t2z.NewTransactionRequest(payments)
+	request, _ := NewTransactionRequest(payments)
 	defer request.Free()
 
 	// Set target height after creation (post-NU5)

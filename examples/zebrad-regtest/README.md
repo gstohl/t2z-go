@@ -16,12 +16,11 @@ Go examples demonstrating t2z library usage with Zebra regtest.
 cd infra/zebrad-regtest
 docker-compose down -v && docker-compose up -d
 
-# Run setup from typescript examples (waits for block 101)
-cd ../../bindings/typescript/examples/zebrad-t2z
-npm install && npm run setup
+# Run setup (waits for block 101)
+cd ../../bindings/go/examples/zebrad-regtest
+go run ./setup
 
 # Run Go examples
-cd ../../bindings/go/examples/zebrad-t2z
 go run ./1-single-output
 ```
 
@@ -34,7 +33,7 @@ go run ./1-single-output
 ## Running Examples
 
 ```bash
-cd bindings/go/examples/zebrad-t2z
+cd bindings/go/examples/zebrad-regtest
 
 # Run individual examples
 go run ./1-single-output      # Single transparent output (T→T)
